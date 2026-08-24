@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard — CarePulse Hospital</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <header class="navbar">
+        <a th:href="@{/patient/dashboard}" class="navbar-brand">
+            CarePulse Hospital
+        </a>
+        <div class="navbar-user">
+            <span class="user-badge" th:text="'Patient: ' + ${user.name}">Patient: User</span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Sign Out</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Alerts -->
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+        <!-- KPI Metrics Row -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-title">Total Bookings</div>
+                <div class="stat-card-value" th:text="${stats.totalBookings}">0</div>
+                <div class="stat-card-desc">All time scheduled appointments</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-card-title">Confirmed Visits</div>
+                <div class="stat-card-value" th:text="${stats.confirmedBookings}">0</div>
+                <div class="stat-card-desc">Scheduled doctor consultations</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-card-title">Pending Approval</div>
+                <div class="stat-card-value" th:text="${stats.pendingBookings}">0</div>
+                <div class="stat-card-desc">Awaiting hospital confirmation</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-card-title">Cancelled</div>
+                <div class="stat-card-value" th:text="${stats.cancelledBookings}">0</div>
+                <div class="stat-card-desc">Released consultation slots</div>
+            </div>
+        </div>
+
+        <!-- Sub Tabs Navigation -->
+        <nav class="tabs-nav">
+            <a th:href="@{/patient/dashboard?tab=doctors}" 
+               class="tab-btn" 
+               th:classappend="${activeTab == 'doctors' ? 'active' : ''}">
+                Find Doctors &amp; Book
+            </a>
+            <a th:href="@{/patient/dashboard?tab=appointments}" 
+               class="tab-btn" 
+               th:classappend="${activeTab == 'appointments' ? 'active' : ''}">
+                My Appointments (<span th:text="${#lists.size(appointments)}">0</span>)
+            </a>
+        </nav>
+
+        <!-- Tab 1: Find Doctors & Book -->
+        <section th:if="${activeTab == 'doctors'}" id="doctorsTab">
+            <!-- Filter Bar -->
+            <form th:action="@{/patient/dashboard}" method="get" class="filter-bar">
+                <input type="hidden" name="tab" value="doctors">
+                <input type="text" name="search" class="form-control" style="flex: 2; min-width: 200px;" 
+                       placeholder="Search doctor by name or specialty..." th:value="${searchTerm}">
+                
+                <select name="department" class="form-control" style="flex: 1; min-width: 180px;">
+                    <option value="All Departments">All Departments</option>
+                    <option th:each="dept : ${departments}" 
+                            th:value="${dept.name}" 
+                            th:text="${dept.name}" 
+                            th:selected="${dept.name == selectedDept}">
+                    </option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a th:href="@{/patient/dashboard?tab=doctors}" class="btn btn-secondary">Reset</a>
+            </form>
+
+            <!-- Doctor Cards Grid -->
+            <div class="doctor-cards">
+                <div th:each="doc : ${doctors}" class="doctor-card">
+                    <div class="doctor-info">
+                        <h3 th:text="${doc.name}">Dr. Name</h3>
+                        <div class="doctor-specialty" th:text="${doc.department + ' • ' + doc.specialization}">Cardiology</div>
+                        <div class="doctor-meta">
+                            <span th:text="'Phone: ' + ${doc.phone}">Phone</span>
+                            <span th:text="'Days: ' + ${doc.availableDays}">Days</span>
+                            <span th:text="'Hours: ' + ${doc.availableTime}">Hours</span>
+                            <span th:text="'Room: ' + ${doc.roomNo}">Room</span>
+                            <span th:text="'Fee: $' + ${doc.consultationFee}">Fee</span>
+                        </div>
+                    </div>
+                    <div class="doctor-action">
+                        <button type="button" class="btn btn-primary"
+                                th:attr="onclick=|openBookingModal(${doc.id}, '${doc.name}', '${doc.department}', '${doc.availableDays}', '${doc.availableTime}', '${doc.roomNo}', '${doc.consultationFee}')|">
+                            Book Appointment
+                        </button>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(doctors)}" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted); background: #fff; border-radius: var(--radius); border: 1px solid var(--border);">
+                    <p style="font-size: 1.1rem; font-weight: 600;">No doctors found matching the search criteria.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: My Appointments -->
+        <section th:if="${activeTab == 'appointments'}" id="appointmentsTab">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Doctor</th>
+                            <th>Department</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="appt : ${appointments}">
+                            <td th:text="'#' + ${appt.id}" style="font-weight: 700;">#1</td>
+                            <td th:text="${appt.doctorName != null ? appt.doctorName : 'Doctor #' + appt.doctorId}">Dr. Name</td>
+                            <td th:text="${appt.department}">Dept</td>
+                            <td th:text="${appt.appointmentDate}">Date</td>
+                            <td th:text="${appt.appointmentTime}">Time</td>
+                            <td th:text="${appt.reason}">Reason</td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${appt.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (appt.status.name() == 'CANCELLED' ? 'badge-cancelled' : 'badge-pending')}"
+                                      th:text="${appt.status.displayName}">
+                                    Pending
+                                </span>
+                            </td>
+                            <td>
+                                <form th:if="${appt.status.name() != 'CANCELLED'}" 
+                                      th:action="@{'/patient/cancel/' + ${appt.id}}" 
+                                      method="post" 
+                                      onsubmit="return confirm('Cancel this appointment? The slot will become available for rebooking.');">
+                                    <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                                </form>
+                                <span th:if="${appt.status.name() == 'CANCELLED'}" style="color: var(--text-muted); font-size: 0.85rem;">Cancelled</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(appointments)}">
+                            <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                                You have not booked any appointments yet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Interactive Booking Modal -->
+    <div id="bookingModal" class="modal-backdrop">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h2 id="bookingDocName" style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">Doctor Name</h2>
+                    <p id="bookingDocDetails" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">Department</p>
+                </div>
+                <button type="button" class="modal-close" onclick="closeModal('bookingModal')">&times;</button>
+            </div>
+
+            <p id="bookingDocDays" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;"></p>
+
+            <form th:action="@{/patient/book}" method="post">
+                <input type="hidden" id="bookingDocId" name="doctorId">
+                <input type="hidden" id="bookingDept" name="department">
+                <input type="hidden" id="selectedTimeSlotInput" name="appointmentTime" required>
+
+                <!-- Date Picker -->
+                <div class="form-group">
+                    <label for="appointmentDateInput">1. Select Appointment Date (Today or Future)</label>
+                    <input type="date" id="appointmentDateInput" name="appointmentDate" class="form-control" required onchange="loadAvailableSlots()">
+                    <span id="availabilityNotice" style="font-size: 0.8rem; display: block; margin-top: 0.25rem;"></span>
+                </div>
+
+                <!-- Time Slot Grid -->
+                <div class="form-group">
+                    <label>2. Choose Available Time Slot</label>
+                    <div id="slotsContainer" class="slots-grid">
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Select a date to view available consultation slots.</p>
+                    </div>
+                </div>
+
+                <!-- Reason for Visit -->
+                <div class="form-group">
+                    <label for="reasonInput">3. Reason for Visit / Symptoms *</label>
+                    <textarea id="reasonInput" name="reason" rows="3" class="form-control" placeholder="Describe symptoms or purpose of appointment..." required></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.25rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('bookingModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

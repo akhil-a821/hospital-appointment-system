@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Registration — CarePulse Hospital</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card" style="max-width: 520px;">
+            <div class="auth-header">
+                <h1>Patient Registration</h1>
+                <p>Create your personal CarePulse account</p>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <form th:action="@{/register}" method="post">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" class="form-control" th:value="${name}" placeholder="Jane Doe" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" class="form-control" th:value="${email}" placeholder="jane.doe@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="text" id="phone" name="phone" class="form-control" th:value="${phone}" placeholder="+1-555-0199" required>
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender" class="form-control">
+                            <option value="Male" th:selected="${gender == 'Male'}">Male</option>
+                            <option value="Female" th:selected="${gender == 'Female'}">Female</option>
+                            <option value="Other" th:selected="${gender == 'Other'}">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" class="form-control" th:value="${age}" placeholder="28">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">Create Account</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 1.25rem; font-size: 0.875rem;">
+                <span style="color: var(--text-muted);">Already registered?</span>
+                <a th:href="@{/login}" style="color: var(--primary); font-weight: 600; text-decoration: none; margin-left: 0.25rem;">Sign In</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

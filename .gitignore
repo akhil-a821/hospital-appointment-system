@@ -1,0 +1,28 @@
+# Build Artifacts
+target/
+dist/
+tools/
+*.jar
+*.war
+*.ear
+
+# Local Databases
+hospital_db.mv.db
+hospital_db.trace.db
+*.db
+
+# IDE & Editor Settings
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS Metadata
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+*.log

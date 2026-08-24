@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — CarePulse Hospital Portal</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>CarePulse</h1>
+                <p>Hospital Appointment Scheduling System</p>
+            </div>
+
+            <!-- Error / Success Alerts -->
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+            <form th:action="@{/login}" method="post">
+                <!-- Role Selector -->
+                <div class="role-toggle">
+                    <label>
+                        <input type="radio" name="role" value="PATIENT" th:checked="${selectedRole == null or selectedRole == 'PATIENT'}">
+                        <span>Patient Portal</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="role" value="ADMIN" th:checked="${selectedRole == 'ADMIN'}">
+                        <span>Admin Portal</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" th:value="${email}" placeholder="name@example.com" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">Sign In</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 1.25rem; font-size: 0.875rem;">
+                <span style="color: var(--text-muted);">Don't have an account?</span>
+                <a th:href="@{/register}" style="color: var(--primary); font-weight: 600; text-decoration: none; margin-left: 0.25rem;">Register as Patient</a>
+            </div>
+
+            <!-- Dedicated 1-Click Demo Login Section for Mobile & Desktop -->
+            <div class="demo-box">
+                <div class="demo-box-title">Quick 1-Click Demo Access</div>
+                <a th:href="@{/demo/patient}" class="demo-btn">
+                    <strong>Demo Patient Portal</strong> (patient@hospital.com)
+                </a>
+                <a th:href="@{/demo/admin}" class="demo-btn" style="background: #f8fafc;">
+                    <strong>Demo Admin Portal</strong> (admin@hospital.com)
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
